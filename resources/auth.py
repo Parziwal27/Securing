@@ -2,7 +2,6 @@ from flask import request
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import create_access_token
 from models.user import create_temporary_user, get_user_by_username, check_password, get_user_by_email, confirm_user, get_temp_user_by_id
-from utils.mobile_verification import send_verification_sms, verify_mobile_token
 from utils.validators import is_valid_email,is_valid_phone
 
 auth_ns = Namespace('auth', description='User authentication operations')
