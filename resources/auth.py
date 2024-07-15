@@ -1,6 +1,6 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from models.user import create_user, get_user_by_username, check_password, get_user_by_email
 from utils.validators import is_valid_email,is_valid_phone
 auth_ns = Namespace('auth', description='User authentication operations')
@@ -82,3 +82,26 @@ class Login(Resource):
             return {"msg": "Login successful", "access_token": access_token}, 200
         else:
             return {"msg": "Bad username or password"}, 401
+
+user_ns = Namespace('user', description='User operations')
+
+@user_ns.route('/details')
+class UserDetails(Resource):
+    @jwt_required()
+    @user_ns.response(200, 'User details retrieved successfully')
+    @user_ns.response(404, 'User not found')
+    def get(self):
+        """Get user details"""
+        current_user = get_jwt_identity()
+        user = get_user_by_username(current_user)
+        
+        if user:
+            return {
+                "username": user['username'],
+                "email": user['email'],
+                "mobile": user['mobile'],
+                "first_name": user['first_name'],
+                "last_name": user['last_name']
+            }, 200
+        else:
+            return {"msg": "User not found"}, 404
