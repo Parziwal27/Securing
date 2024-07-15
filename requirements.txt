@@ -41,3 +41,5 @@ werkzeug==3.0.3
 wrapt==1.16.0
 zipp==3.19.2
 python-dotenv==0.19.1
+email_validator==1.2.0
+
