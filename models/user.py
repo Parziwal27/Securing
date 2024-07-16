@@ -21,6 +21,8 @@ def get_user_by_username(username):
 
 def get_user_by_email(email):
     return users_collection.find_one({'email': email})
+def get_user_by_mobile(mobile):
+    return users_collection.find_one({'mobile': mobile})
 
 def check_password(hashed_password, password):
     return check_password_hash(hashed_password, password)

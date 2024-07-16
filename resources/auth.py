@@ -1,7 +1,7 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from models.user import get_user_by_username, check_password, get_user_by_email, create_temporary_user
+from models.user import get_user_by_username, check_password, get_user_by_email, create_temporary_user, get_user_by_mobile
 from utils.validators import is_valid_email,is_valid_phone
 auth_ns = Namespace('auth', description='User authentication operations')
 
@@ -40,6 +40,8 @@ class Register(Resource):
             return {"msg":"Enter a valid mobile number"}
         if get_user_by_username(data['username']):
             return {"msg": "Username already exists"}, 400
+        if get_user_by_mobile(data['mobile']):
+            return {"msg": "Number already exists"}, 400
         if get_user_by_email(data["email"]):
             return{"msg":"Email already registered"}, 400
 
