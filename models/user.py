@@ -26,7 +26,7 @@ def check_password(hashed_password, password):
     return check_password_hash(hashed_password, password)
 
 # If needed, you can keep the existing functions for temporary users
-def create_temporary_user(username, password, email, mobile, first_name, last_name):
+def create_temporary_user(username, password, email, mobile, first_name, last_name, age):
     hashed_password = generate_password_hash(password)
     temp_user = {
         'username': username,
@@ -35,8 +35,7 @@ def create_temporary_user(username, password, email, mobile, first_name, last_na
         'mobile': mobile,
         'first_name': first_name,
         'last_name': last_name,
-        'email_verified': False,
-        'mobile_verified': False
+        'Age':age
     }
     result = temp_users_collection.insert_one(temp_user)
     return get_temp_user_by_id(result.inserted_id)

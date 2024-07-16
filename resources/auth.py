@@ -1,7 +1,7 @@
 from flask import request
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from models.user import create_user, get_user_by_username, check_password, get_user_by_email
+from models.user import create_user, get_user_by_username, check_password, get_user_by_email, create_temporary_user
 from utils.validators import is_valid_email,is_valid_phone
 auth_ns = Namespace('auth', description='User authentication operations')
 
@@ -30,7 +30,7 @@ class Register(Resource):
             return {"msg": "Missing JSON in request"}, 400
 
         data = request.json
-        required_fields = ['username', 'password', 'email', 'mobile', 'first_name', 'last_name']
+        required_fields = ['username', 'password', 'email', 'mobile', 'first_name', 'last_name', "Age"]
         
         if not all(field in data for field in required_fields):
             return {"msg": "Missing required fields"}, 400
@@ -44,19 +44,18 @@ class Register(Resource):
             return{"msg":"Email already registered"}, 400
 
         
-        
-        
-        user = create_user(
+        user = create_temporary_user(
             username=data['username'],
             password=data['password'],
             email=data['email'],
             mobile=data['mobile'],
             first_name=data['first_name'],
-            last_name=data['last_name']
+            last_name=data['last_name'],
+            age=data["age"]
         )
 
         return {"msg": "User registered successfully", "user_id": str(user['_id'])}, 201
-
+ 
 @auth_ns.route('/login')
 class Login(Resource):
     @auth_ns.expect(login_model)
