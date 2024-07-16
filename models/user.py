@@ -2,19 +2,19 @@ from config.database import users_collection, temp_users_collection
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 
-def create_user(username, password, email, mobile, first_name, last_name):
-    hashed_password = generate_password_hash(password)
-    user = {
-        'username': username,
-        'password': hashed_password,
-        'email': email,
-        'mobile': mobile,
-        'first_name': first_name,
-        'last_name': last_name
-    }
-    result = users_collection.insert_one(user)
-    user['_id'] = str(result.inserted_id)
-    return user
+# def create_user(username, password, email, mobile, first_name, last_name):
+#     hashed_password = generate_password_hash(password)
+#     user = {
+#         'username': username,
+#         'password': hashed_password,
+#         'email': email,
+#         'mobile': mobile,
+#         'first_name': first_name,
+#         'last_name': last_name
+#     }
+#     result = users_collection.insert_one(user)
+#     user['_id'] = str(result.inserted_id)
+#     return user
 
 def get_user_by_username(username):
     return users_collection.find_one({'username': username})
