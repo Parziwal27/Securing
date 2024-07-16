@@ -1,8 +1,9 @@
-from flask import request
+from flask import jsonify, request, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from models.user import get_user_by_username, check_password, get_user_by_email, create_temporary_user, get_user_by_mobile, get_temp_user_by_id, confirm_user
 from utils.validators import is_valid_email, is_valid_phone
+from config.database import temp_users_collection
 
 auth_ns = Namespace('auth', description='User authentication operations')
 
@@ -152,3 +153,14 @@ def post_placeholder(data,token):
     headers = {'Content-Type': 'application/json','Authorization': f'Bearer {token}'}
     response = requests.post(url, json=data, headers=headers)
     return response
+@user_ns.route('/tempusers')
+class ConfirmUser(Resource):
+    @jwt_required
+    @user_ns.response(200, 'User confirmed successfully')
+    @user_ns.response(404, 'User not found')
+    def get(self):
+        try:
+            temp_users = list(temp_users_collection.find({}, {'_id': 0}))
+            return make_response(jsonify(temp_users), 200)
+        except Exception as e:
+            return make_response(jsonify({'error': str(e)}), 500)   
