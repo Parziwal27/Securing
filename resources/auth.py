@@ -134,48 +134,23 @@ class ConfirmUser(Resource):
             required_fields = ['username']
             if not all(field in data for field in required_fields):
                 return {"msg": "Missing required fields"}, 400
-            temp_user = get_temp_user_by_id(data['username'])
-            if not temp_user:
+            user = get_user_by_username(data['username'])
+            if not user:
                 return {"msg": "Temporary user not found"}, 404
 
             auth_header = request.headers.get('Authorization')
             if not auth_header:
                 return {"msg": "Authorization token missing"}, 400
+            user["isVerified"]="accepted"
+            users_collection.update_one({'Username': data['username']}, {'$set': user})
 
-            token = auth_header.split(" ")[1]
-            print(token)
-            print("temp: ",temp_user)
-            body1 = {
-                "name": temp_user['first_name'] + " " + temp_user['last_name'],
-                "age": int(temp_user['age']),
-                "policies": []
-            }
-            placeholder_response = post_placeholder(body1, token)
+            return {"msg": "User confirmed successfully"}, 200
 
-            if placeholder_response and placeholder_response.status_code == 201:
-                confirm_user(temp_user)
-                return {"msg": "User confirmed successfully and placeholder created"}, 200
-            elif placeholder_response:
-                return {"msg": "User confirmed, but failed to create placeholder", "response": placeholder_response.json()}, 500
-            else:
-                return {"msg": "User confirmed, but failed to create placeholder due to request error"}, 500
+
         except Exception as e:
             return {"msg": str(e)}, 500
 
-def post_placeholder(data, token):
-    """Post data to the placeholder endpoint"""
-    url = 'https://securing.onrender.com/api/policyholder'
-    headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {token}'}
-    print("data:", data)
-    try:
-        response = requests.post(url, json=data, headers=headers)
-        response.raise_for_status()
-        return response
-    except requests.exceptions.RequestException as e:
-        print(f"Error posting to placeholder: {str(e)}")
-        print(f"Response content: {e.response.content if e.response else 'No response'}")
-        return None
-    
+
 @user_ns.route('/tempusers')
 class fetchtempuser(Resource):
     @jwt_required()
