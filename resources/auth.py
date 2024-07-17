@@ -183,7 +183,7 @@ class fetchtempuser(Resource):
     @user_ns.response(404, 'User not found')
     def get(self):
         try:
-            temp_users = list(temp_users_collection.find({}, {'_id': 0}))
+            temp_users = list(users_collection.find({}, {'_id': 0}))
             return make_response(jsonify(temp_users), 200)
         except Exception as e:
             return make_response(jsonify({'error': str(e)}), 500)   
