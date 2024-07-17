@@ -88,7 +88,7 @@ class Login(Resource):
 
         if user and check_password(user['Password'], password):
             access_token = create_access_token(identity=username)
-            return {"msg": "Login successful", "access_token": access_token}, 200
+            return {"msg": "Login successful", "access_token": access_token,"isAdmin": user["isAdmin"]}, 200
         else:
             return {"msg": "Bad username or password"}, 401
 
