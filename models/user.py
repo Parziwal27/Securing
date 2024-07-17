@@ -1,35 +1,38 @@
-from config.database import users_collection, temp_users_collection
+from config.database import users_collection
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 
 def get_user_by_username(username):
-    return users_collection.find_one({'username': username})
+    return users_collection.find_one({'Username': username})
 
 def get_user_by_email(email):
-    return users_collection.find_one({'email': email})
+    return users_collection.find_one({'Email': email})
 
 def get_user_by_mobile(mobile):
-    return users_collection.find_one({'mobile': mobile})
+    return users_collection.find_one({'Mobile': mobile})
 
 def check_password(hashed_password, password):
     return check_password_hash(hashed_password, password)
 
-def create_temporary_user(username, password, email, mobile, first_name, last_name, age):
+def create_user(username, password, email, mobile, first_name, last_name, age):
     hashed_password = generate_password_hash(password)
-    temp_user = {
-        'username': username,
-        'password': hashed_password,
-        'email': email,
-        'mobile': mobile,
-        'first_name': first_name,
-        'last_name': last_name,
-        'age': age
+    user = {
+        "Username": username,
+        "Password": hashed_password,
+        "First_name": first_name,
+        "Last_name": last_name,
+        "Email": email,
+        "Mobile": mobile,
+        "isAdmin": False,
+        "isVerified": 'pending',
+        "age": age,
+        "policies": []
     }
-    result = temp_users_collection.insert_one(temp_user)
+    result = users_collection.insert_one(user)
     return get_temp_user_by_id(username)
 
 def get_temp_user_by_id(user_id):
-    user = temp_users_collection.find_one({'username': user_id})
+    user = users_collection.find_one({'Username': user_id})
     if user:
         user['_id'] = str(user['_id'])
     return user

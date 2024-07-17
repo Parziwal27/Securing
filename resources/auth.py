@@ -1,9 +1,9 @@
 from flask import jsonify, request, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from models.user import get_user_by_username, check_password, get_user_by_email, create_temporary_user, get_user_by_mobile, get_temp_user_by_id, confirm_user
+from models.user import get_user_by_username, check_password, get_user_by_email, create_user, get_user_by_mobile, get_temp_user_by_id, confirm_user
 from utils.validators import is_valid_email, is_valid_phone
-from config.database import temp_users_collection
+from config.database import users_collection
 import requests
 
 auth_ns = Namespace('auth', description='User authentication operations')
@@ -33,7 +33,7 @@ class Register(Resource):
             return {"msg": "Missing JSON in request"}, 400
 
         data = request.json
-        required_fields = ['username', 'password', 'email', 'mobile', 'first_name', 'last_name']
+        required_fields = ['username', 'password', 'email', 'mobile', 'first_name', 'last_name','age']
         
         if not all(field in data for field in required_fields):
             return {"msg": "Missing required fields"}, 400
@@ -50,7 +50,7 @@ class Register(Resource):
         if int(data['age'])<18:
             return {"msg":"Underage"}, 400
 
-        user = create_temporary_user(
+        user = create_user(
             username=data['username'],
             password=data['password'],
             email=data['email'],
@@ -86,8 +86,7 @@ class Login(Resource):
         if not user:
             return {"msg": "User not found"}, 404
 
-        if user and check_password(user['password'], password):
-            # Generate an access token (optional)
+        if user and check_password(user['Password'], password):
             access_token = create_access_token(identity=username)
             return {"msg": "Login successful", "access_token": access_token}, 200
         else:
@@ -110,11 +109,12 @@ class UserDetails(Resource):
         
         if user:
             return {
-                "username": user['username'],
-                "email": user['email'],
-                "mobile": user['mobile'],
-                "first_name": user['first_name'],
-                "last_name": user['last_name']
+                "username": user['Username'],
+                "email": user['Email'],
+                "mobile": user['Mobile'],
+                "first_name": user['First_name'],
+                "last_name": user['Last_name'],
+                "User status":user["isVerified"]
             }, 200
         else:
             return {"msg": "User not found"}, 404
@@ -144,12 +144,13 @@ class ConfirmUser(Resource):
 
             token = auth_header.split(" ")[1]
             print(token)
-
-            placeholder_response = post_placeholder({
+            print("temp: ",temp_user)
+            body1 = {
                 "name": temp_user['first_name'] + " " + temp_user['last_name'],
-                "age": temp_user['age'],
+                "age": int(temp_user['age']),
                 "policies": []
-            }, token)
+            }
+            placeholder_response = post_placeholder(body1, token)
 
             if placeholder_response and placeholder_response.status_code == 201:
                 confirm_user(temp_user)
@@ -165,7 +166,7 @@ def post_placeholder(data, token):
     """Post data to the placeholder endpoint"""
     url = 'https://securing.onrender.com/api/policyholder'
     headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {token}'}
-
+    print("data:", data)
     try:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()
