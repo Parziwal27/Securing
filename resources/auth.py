@@ -133,7 +133,7 @@ class ConfirmUser(Resource):
             temp_user = get_temp_user_by_id(data['username'])
             if not temp_user:
                 return {"msg": "Temporary user not found"}, 404
-            confirm_user(temp_user)
+            
             access_token = create_access_token(identity=temp_user['username'])
             placeholder_response = post_placeholder({
                 "name": temp_user['first_name'] + " " + temp_user['last_name'],
@@ -141,6 +141,7 @@ class ConfirmUser(Resource):
                 "policies": []
             },access_token)
             if placeholder_response.status_code == 201:
+                confirm_user(temp_user)
                 return {"msg": "User confirmed successfully and placeholder created"}, 200
             else:
                 return {"msg": "User confirmed, but failed to create placeholder"}, 500
@@ -150,7 +151,7 @@ class ConfirmUser(Resource):
 def post_placeholder(data,token):
     """Post data to the placeholder endpoint"""
     import requests
-    url = 'https://statefull-application-cms.onrender.com/api/policyholder'
+    url = 'https://securing.onrender.com/api/policyholder'
     headers = {'Content-Type': 'application/json','Authorization': f'Bearer {token}'}
     response = requests.post(url, json=data, headers=headers)
     return response
