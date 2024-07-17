@@ -46,7 +46,7 @@ class Register(Resource):
             return {"msg": "Number already exists"}, 400
         if get_user_by_email(data["email"]):
             return {"msg": "Email already registered"}, 400
-        if data['age']<18:
+        if int(data['age'])<18:
             return {"msg":"Underage"}, 400
 
         user = create_temporary_user(
