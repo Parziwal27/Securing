@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 from models.user import get_user_by_username, check_password, get_user_by_email, create_temporary_user, get_user_by_mobile, get_temp_user_by_id, confirm_user
 from utils.validators import is_valid_email, is_valid_phone
 from config.database import temp_users_collection
+import requests
 
 auth_ns = Namespace('auth', description='User authentication operations')
 
@@ -117,11 +118,10 @@ class UserDetails(Resource):
 
 @user_ns.route('/confirm')
 class ConfirmUser(Resource):
+    @jwt_required()
     @user_ns.response(200, 'User confirmed successfully')
     @user_ns.response(404, 'User not found')
     def post(self):
-        
-
         try:
             if not request.is_json:
                 return {"msg": "Missing JSON in request"}, 400
@@ -133,26 +133,33 @@ class ConfirmUser(Resource):
             temp_user = get_temp_user_by_id(data['username'])
             if not temp_user:
                 return {"msg": "Temporary user not found"}, 404
-            
-            access_token = create_access_token(identity=temp_user['username'])
+
+            auth_header = request.headers.get('Authorization')
+            if not auth_header:
+                return {"msg": "Authorization token missing"}, 400
+
+            token = auth_header.split(" ")[1]
+
             placeholder_response = post_placeholder({
                 "name": temp_user['first_name'] + " " + temp_user['last_name'],
                 "age": temp_user['age'],
                 "policies": []
-            },access_token)
-            if placeholder_response.status_code == 201:
+            }, token)
+
+            if placeholder_response and placeholder_response.status_code == 201:
                 confirm_user(temp_user)
                 return {"msg": "User confirmed successfully and placeholder created"}, 200
+            elif placeholder_response:
+                return {"msg": "User confirmed, but failed to create placeholder", "response": placeholder_response.json()}, 500
             else:
-                return {"msg": "User confirmed, but failed to create placeholder"}, 500
+                return {"msg": "User confirmed, but failed to create placeholder due to request error"}, 500
         except Exception as e:
             return {"msg": str(e)}, 500
 
-def post_placeholder(data,token):
+def post_placeholder(data, token):
     """Post data to the placeholder endpoint"""
-    import requests
-    url = 'https://statefull-application-cms.onrender.com/api/policyholder'
-    headers = {'Content-Type': 'application/json','Authorization': f'Bearer {token}'}
+    url = 'https://securing.onrender.com/api/policyholder'
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
     try:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()
@@ -161,6 +168,7 @@ def post_placeholder(data,token):
         print(f"Error posting to placeholder: {str(e)}")
         print(f"Response content: {e.response.content if e.response else 'No response'}")
         return None
+    
 @user_ns.route('/tempusers')
 class fetchtempuser(Resource):
     @jwt_required()
