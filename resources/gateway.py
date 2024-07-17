@@ -1,5 +1,5 @@
 from flask import request
-from flask_restx import Resource, Namespace
+from flask_restx import Resource, Namespace, fields
 from flask_jwt_extended import jwt_required
 import requests
 
@@ -19,6 +19,7 @@ class Gateway(Resource):
     @jwt_required()
     @gateway_ns.response(200, 'Success')
     @gateway_ns.response(500, 'Internal Server Error')
+    @gateway_ns.param('path', 'Resource path', required=True, type='string')
     def post(self, path):
         """Gateway for POST requests"""
         return self.forward_request(path)
@@ -45,7 +46,8 @@ class Gateway(Resource):
             headers={key: value for (key, value) in request.headers if key != 'Host'},
             data=request.get_data(),
             cookies=request.cookies,
-            allow_redirects=False)
+            allow_redirects=False,
+            timeout=10)
         try:
             json_response = response.json()
         except ValueError:

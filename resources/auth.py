@@ -94,6 +94,9 @@ class Login(Resource):
             return {"msg": "Bad username or password"}, 401
 
 user_ns = Namespace('user', description='User operations')
+confirmuser = user_ns.model('Confirm', {
+    'username': fields.String(required=True, description='The username')
+})
 
 @user_ns.route('/details')
 class UserDetails(Resource):
@@ -119,6 +122,7 @@ class UserDetails(Resource):
 @user_ns.route('/confirm')
 class ConfirmUser(Resource):
     @jwt_required()
+    @user_ns.expect(confirmuser)
     @user_ns.response(200, 'User confirmed successfully')
     @user_ns.response(404, 'User not found')
     def post(self):
@@ -139,6 +143,7 @@ class ConfirmUser(Resource):
                 return {"msg": "Authorization token missing"}, 400
 
             token = auth_header.split(" ")[1]
+            print(token)
 
             placeholder_response = post_placeholder({
                 "name": temp_user['first_name'] + " " + temp_user['last_name'],
@@ -159,7 +164,8 @@ class ConfirmUser(Resource):
 def post_placeholder(data, token):
     """Post data to the placeholder endpoint"""
     url = 'https://securing.onrender.com/api/policyholder'
-    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {token}'}
+
     try:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()
