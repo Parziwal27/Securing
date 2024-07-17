@@ -120,18 +120,19 @@ class ConfirmUser(Resource):
     @user_ns.response(200, 'User confirmed successfully')
     @user_ns.response(404, 'User not found')
     def post(self):
-        if not request.is_json:
-            return {"msg": "Missing JSON in request"}, 400
-
-        data = request.json
-        required_fields = ['username']
-        if not all(field in data for field in required_fields):
-            return {"msg": "Missing required fields"}, 400
-        temp_user = get_temp_user_by_id(data['username'])
-        if not temp_user:
-            return {"msg": "Temporary user not found"}, 404
+        
 
         try:
+            if not request.is_json:
+                return {"msg": "Missing JSON in request"}, 400
+
+            data = request.json
+            required_fields = ['username']
+            if not all(field in data for field in required_fields):
+                return {"msg": "Missing required fields"}, 400
+            temp_user = get_temp_user_by_id(data['username'])
+            if not temp_user:
+                return {"msg": "Temporary user not found"}, 404
             confirm_user(temp_user)
             access_token = create_access_token(identity=temp_user['username'])
             placeholder_response = post_placeholder({
