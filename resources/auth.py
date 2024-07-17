@@ -151,10 +151,16 @@ class ConfirmUser(Resource):
 def post_placeholder(data,token):
     """Post data to the placeholder endpoint"""
     import requests
-    url = 'https://securing.onrender.com/api/policyholder'
+    url = 'https://statefull-application-cms.onrender.com/api/policyholder'
     headers = {'Content-Type': 'application/json','Authorization': f'Bearer {token}'}
-    response = requests.post(url, json=data, headers=headers)
-    return response
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        response.raise_for_status()
+        return response
+    except requests.exceptions.RequestException as e:
+        print(f"Error posting to placeholder: {str(e)}")
+        print(f"Response content: {e.response.content if e.response else 'No response'}")
+        return None
 @user_ns.route('/tempusers')
 class fetchtempuser(Resource):
     @jwt_required()
