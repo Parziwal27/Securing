@@ -57,7 +57,7 @@ class Register(Resource):
             mobile=data['mobile'],
             first_name=data['first_name'],
             last_name=data['last_name'],
-            age=data['age']
+            age=int(data['age'])
         )
 
         if user:
@@ -114,7 +114,7 @@ class UserDetails(Resource):
                 "mobile": user['Mobile'],
                 "first_name": user['First_name'],
                 "last_name": user['Last_name'],
-                "User status":user["isVerified"]
+                "User_status":user["isVerified"]
             }, 200
         else:
             return {"msg": "User not found"}, 404
