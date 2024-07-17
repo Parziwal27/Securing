@@ -155,7 +155,7 @@ def post_placeholder(data,token):
     return response
 @user_ns.route('/tempusers')
 class fetchtempuser(Resource):
-    @jwt_required
+    @jwt_required()
     @user_ns.response(200, 'User confirmed successfully')
     @user_ns.response(404, 'User not found')
     def get(self):
