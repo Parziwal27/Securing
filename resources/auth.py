@@ -150,6 +150,37 @@ class ConfirmUser(Resource):
         except Exception as e:
             return {"msg": str(e)}, 500
 
+@user_ns.route('/reject')
+class RejectUser(Resource):
+    @jwt_required()
+    @user_ns.expect(confirmuser)
+    @user_ns.response(200, 'User Rejected successfully')
+    @user_ns.response(404, 'User not found')
+    def post(self):
+        try:
+            if not request.is_json:
+                return {"msg": "Missing JSON in request"}, 400
+
+            data = request.json
+            required_fields = ['username']
+            if not all(field in data for field in required_fields):
+                return {"msg": "Missing required fields"}, 400
+            user = get_user_by_username(data['username'])
+            if not user:
+                return {"msg": "Temporary user not found"}, 404
+
+            auth_header = request.headers.get('Authorization')
+            if not auth_header:
+                return {"msg": "Authorization token missing"}, 400
+            user["isVerified"]="rejected"
+            users_collection.update_one({'Username': data['username']}, {'$set': user})
+
+            return {"msg": "User confirmed successfully"}, 200
+
+
+        except Exception as e:
+            return {"msg": str(e)}, 500
+
 
 @user_ns.route('/tempusers')
 class fetchtempuser(Resource):
