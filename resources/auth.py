@@ -155,7 +155,7 @@ class RejectUser(Resource):
     @jwt_required()
     @user_ns.expect(confirmuser)
     @user_ns.response(200, 'User Rejected successfully')
-    @user_ns.response(404, 'User not found')
+    @user_ns.response(404, 'User not found')    
     def post(self):
         try:
             if not request.is_json:
